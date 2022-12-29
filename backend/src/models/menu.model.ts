@@ -4,9 +4,10 @@ export interface IMenu {
     _id: mongoose.Schema.Types.ObjectId,
     image: string,
     chef: mongoose.Schema.Types.ObjectId,
+    price: number,
     item: string,
     left: number,
-    expire_at?: Date
+    expire_at: Date
 }
 
 export interface IMenuModel extends mongoose.Model<IMenu> {
@@ -25,6 +26,9 @@ const menuSchema = new mongoose.Schema<IMenu, IMenuModel>({
         type: String
     },
     left: {
+        type: Number
+    },
+    price: {
         type: Number
     },
     expire_at: {

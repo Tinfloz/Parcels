@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export interface IOrdersToBe {
     _id: mongoose.Schema.Types.ObjectId,
     user: mongoose.Schema.Types.ObjectId,
+    orderId: mongoose.Schema.Types.ObjectId,
     qty: number
 }
 
@@ -10,15 +11,15 @@ export interface IChef {
     _id: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
     active: boolean,
-    menu: mongoose.Schema.Types.ObjectId,
+    menu?: mongoose.Schema.Types.ObjectId,
     requestedOrders?: Array<IOrdersToBe>,
     acceptedOrders?: Array<IOrdersToBe>
-    address: string,
-    city: string,
-    state: string,
-    pincode: string,
-    latitude: number,
-    longitude: number
+    address?: string,
+    city?: string,
+    state?: string,
+    pincode?: string,
+    latitude?: number,
+    longitude?: number
 };
 
 export interface IChefModel extends mongoose.Model<IChef> {
@@ -46,6 +47,10 @@ const chefSchema = new mongoose.Schema<IChef, IChefModel>({
             },
             qty: {
                 type: Number,
+            },
+            orderId: {
+                type: mongoose.Types.ObjectId,
+                ref: "Orders"
             }
         }
     ],
@@ -57,6 +62,10 @@ const chefSchema = new mongoose.Schema<IChef, IChefModel>({
             },
             qty: {
                 type: Number,
+            },
+            orderId: {
+                type: mongoose.Types.ObjectId,
+                ref: "Orders"
             }
         }
     ],
