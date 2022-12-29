@@ -2,22 +2,26 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
-export interface IUser extends mongoose.Document {
+export interface IUser {
+    _id: mongoose.Schema.Types.ObjectId
     email: string,
     password: string,
     name: string,
     userType: string,
     resetToken?: string,
     resetTokenExpires?: Date,
+};
+
+export interface IUserMethods {
     matchPassword: (password: string) => Promise<boolean>,
     getResetToken: () => string
 };
 
-export interface IUserModel extends mongoose.Model<IUser> {
+export interface IUserModel extends mongoose.Model<IUser, {}, IUserMethods> {
     instanceOfIUser: (param: any) => param is IUser
-}
+};
 
-const allUserSchema = new mongoose.Schema<IUser>({
+const allUserSchema = new mongoose.Schema<IUser, IUserModel, IUserMethods>({
     email: {
         type: String,
         required: true,
@@ -74,3 +78,6 @@ allUserSchema.methods.getResetToken = function (): string {
 allUserSchema.statics.instanceOfIUser = (param: any): param is IUser => {
     return param.name !== undefined
 };
+
+const Users = mongoose.model<IUser, IUserModel>("Users", allUserSchema);
+export default Users
