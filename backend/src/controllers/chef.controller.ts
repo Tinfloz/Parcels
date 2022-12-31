@@ -1,36 +1,10 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Chefs from "../models/chef.model";
-import Customers from "../models/customer.model";
 import Menus from "../models/menu.model";
 import Orders from "../models/order.model";
-import Deliveries from "../models/pending.delivery.model";
 import { menuUpdateZodSchema, menuZodSchema } from "../zod/chef.zod.schema";
 
-
-// set profile to active
-const toggleActiveState = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const chef = await Chefs.findOne({
-            userId: req.user!._id
-        });
-        if (chef!.active) {
-            chef!.active = false;
-        } else if (!chef!.active) {
-            chef!.active = true;
-        };
-        await chef!.save();
-        res.status(200).json({
-            success: true,
-            active: chef!.active
-        });
-    } catch (error: any) {
-        res.status(500).json({
-            succes: false,
-            error: error.errors?.[0]?.message || error
-        });
-    };
-};
 
 // create menu
 const createMenu = async (req: Request, res: Response): Promise<void> => {
@@ -74,14 +48,6 @@ const createMenu = async (req: Request, res: Response): Promise<void> => {
 // update menu 
 const updateMenu = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw "invalid id"
-        };
-        const menu = await Menus.findById(id);
-        if (!menu) {
-            throw "menu not found"
-        };
         const result = menuUpdateZodSchema.safeParse(req.body);
         if (!result.success) {
             res.status(400).json({
@@ -92,56 +58,45 @@ const updateMenu = async (req: Request, res: Response): Promise<void> => {
         };
         const chef = await Chefs.findOne({
             userId: req.user!._id
+        })
+        const menu = await Menus.findOne({
+            chef: chef!._id
         });
+        if (!menu) {
+            throw "menu not found";
+        };
         const { item, image, left, price } = result.data;
-        if (menu.chef.toString() !== chef!._id.toString()) {
-            throw "not authorized"
-        };
-        menu.item = item || menu.item;
-        menu.image = image || menu.image;
-        menu.left = Number(left) || menu.left;
-        menu.price = Number(price) || menu.price;
-        await menu.save();
+        menu!.item = item || menu!.item;
+        menu!.image = image || menu!.image;
+        menu!.left = Number(left) || menu!.left;
+        menu!.price = Number(price) || menu!.price;
+        await menu!.save();
     } catch (error: any) {
-        if (error === "menu not found") {
-            res.status(404).json({
-                succes: false,
-                error: error.errors?.[0]?.message || error
-            });
-        } else if (error === "not authorized") {
-            res.status(403).json({
-                succes: false,
-                error: error.errors?.[0]?.message || error
-            });
-        } else {
-            res.status(500).json({
-                succes: false,
-                error: error.errors?.[0]?.message || error
-            });
-        };
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
     };
 };
 
 // delete menu 
 const deleteMenu = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw "invalid id"
-        };
-        const menu = await Menus.findById(id);
-        if (!menu) {
-            throw "menu not found"
-        };
         const chef = await Chefs.findOne({
             userId: req.user!._id
         });
+        const menu = await Menus.findOne({
+            chef: chef!._id
+        });
+        if (!menu) {
+            throw "menu not found"
+        }
         if (menu!.chef.toString() !== chef!._id.toString()) {
             throw "not authorized"
         };
         chef!.menu = undefined;
         await chef!.save();
-        await menu.remove();
+        await menu!.remove();
         res.status(200).json({
             success: false,
             chef
@@ -169,15 +124,26 @@ const deleteMenu = async (req: Request, res: Response): Promise<void> => {
 // accept orders
 const acceptOrders = async (req: Request, res: Response): Promise<void> => {
     try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw "id invalid";
+        };
         const chef = await Chefs.findOne({
             userId: req.user!._id
         });
-        const { id } = req.params;
-        for (let i of chef!.requestedOrders!) {
-            if (i._id.toString() === id) {
-                let index = chef!.requestedOrders!.indexOf(i);
+        for (let element of chef!.requestedOrders!) {
+            if (element._id!.toString() === id) {
+                let index = chef!.requestedOrders!.indexOf(element);
                 chef!.requestedOrders!.splice(index, 1);
-                chef!.acceptedOrders!.push(i);
+                chef!.acceptedOrders!.push(element);
+                const order = await Orders.findById(element!.orderId);
+                for (let i of order!.items) {
+                    if (i._id!.toString() === element!.elementId.toString()) {
+                        i.status = "Accepted"
+                        break;
+                    };
+                };
+                await order!.save();
                 await chef!.save();
                 break;
             };
@@ -194,28 +160,37 @@ const acceptOrders = async (req: Request, res: Response): Promise<void> => {
     };
 };
 
-// reject orders
+// reject order
+// TODO: add refun logic
 const rejectOrders = async (req: Request, res: Response): Promise<void> => {
     try {
-        const chef = await Chefs.findOne({
-            userId: req.user!._id
-        });
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw "id invalid"
         };
-        for (let i of chef!.requestedOrders!) {
-            if (i._id.toString() === id) {
-                let index = chef!.requestedOrders!.indexOf(i);
+        const chef = await Chefs.findOne({
+            userId: req.user!._id
+        });
+        for (let element of chef!.requestedOrders!) {
+            if (element!._id!.toString() === id) {
+                let index = chef!.requestedOrders!.indexOf(element);
                 chef!.requestedOrders!.splice(index, 1);
+                const order = await Orders.findById(element!.orderId);
+                for (let i of order!.items) {
+                    if (i._id!.toString() === element!.elementId.toString()) {
+                        i.status = "Rejected";
+                        break;
+                    };
+                };
                 await chef!.save();
+                await order!.save();
                 break;
             };
         };
         res.status(200).json({
             success: true,
             id
-        });
+        })
     } catch (error: any) {
         res.status(500).json({
             succes: false,
@@ -224,64 +199,15 @@ const rejectOrders = async (req: Request, res: Response): Promise<void> => {
     };
 };
 
-// mark orders prepared
-const markOrdersPrepared = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const chef = await Chefs.findOne({
-            userId: req.user!._id
-        });
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw "id invalid"
-        };
-        const order = await Orders.findById(id).populate("customer",
-            "address city state pincode latitude longitude");
-        if (!order) {
-            throw "order not found";
-        };
-        for (let i of order!.items!) {
-            if (i.chef.toString() === chef?._id.toString()) {
-                i.prepared = true;
-                await order!.save();
-                break;
-            };
-        };
-        const pickUpAddress = {
-            address: chef!.address,
-            city: chef!.city,
-            state: chef!.state,
-            pincode: chef!.pincode,
-            latitude: chef!.latitude,
-            longitude: chef!.longitude
-        };
-        let dropAddress = {};
-        if (Customers.instanceOfICustomer(order!.customer)) {
-            Object.assign(dropAddress, {
-                address: order!.customer!.address,
-                city: order!.customer!.city,
-                state: order!.customer!.state,
-                pincode: order!.customer!.pincode,
-                latitude: order!.customer!.latitude,
-                longitude: order!.customer!.longitude
-            });
-        };
-        await Deliveries.create({
-            pickUpAddress,
-            dropAddress,
-            orderId: id
-        });
-    } catch (error: any) {
-        res.status(500).json({
-            succes: false,
-            error: error.errors?.[0]?.message || error
-        });
-    };
-};
+
+
 
 export {
-    toggleActiveState,
     createMenu,
     acceptOrders,
     rejectOrders,
-    markOrdersPrepared
+    updateMenu,
+    deleteMenu,
 }
+
+

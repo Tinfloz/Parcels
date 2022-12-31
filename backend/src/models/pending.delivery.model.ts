@@ -10,12 +10,13 @@ interface IAddresses {
 }
 
 export interface IDeliveryRequests {
-    _id: string,
+    _id: mongoose.Schema.Types.ObjectId,
     claimed: boolean,
     pickUpAddress: IAddresses,
     dropAddress: IAddresses,
     orderId: mongoose.Schema.Types.ObjectId,
-    rider?: mongoose.Schema.Types.ObjectId
+    elementId: string,
+    rider: mongoose.Schema.Types.ObjectId
 };
 
 interface IDeliveryRequestsModel extends mongoose.Model<IDeliveryRequests> {
@@ -39,6 +40,9 @@ const deliveryRequestSchema = new mongoose.Schema<IDeliveryRequests, IDeliveryRe
     orderId: {
         type: mongoose.Types.ObjectId,
         ref: "Orders"
+    },
+    elementId: {
+        type: String
     }
 }, { timestamps: true });
 

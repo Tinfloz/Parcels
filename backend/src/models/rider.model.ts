@@ -9,7 +9,8 @@ export interface IRider {
     _id: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
     active: boolean,
-    toBeDelivered: Array<IToBeDelivered>
+    toBeDelivered: Array<IToBeDelivered>,
+    activeDeliveries?: mongoose.Schema.Types.ObjectId
 };
 
 export interface IRiderModel extends mongoose.Model<IRider> {
@@ -36,7 +37,11 @@ const riderSchema = new mongoose.Schema<IRider, IRiderModel>({
                 ref: "Customers"
             }
         }
-    ]
+    ],
+    activeDeliveries: {
+        type: mongoose.Types.ObjectId,
+        ref: "Deliveries"
+    }
 }, { timestamps: true })
 
 // static method

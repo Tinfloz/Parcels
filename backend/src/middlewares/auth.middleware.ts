@@ -70,8 +70,23 @@ const isRider = (req: Request, res: Response, next: NextFunction): void => {
     };
 };
 
+// is a customer
+const isCustomer = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (req.user!.userType === "Customer") {
+            next()
+        };
+        throw "not authorized"
+    } catch (error: any) {
+        res.status(403).json({
+            success: false,
+            message: error.errors?.[0]?.message || error
+        });
+    };
+};
 export {
     protect,
     isRider,
-    isChef
+    isChef,
+    isCustomer
 }

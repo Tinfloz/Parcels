@@ -1,9 +1,15 @@
-import express, { Request, Response, Express } from "express";
+import express, { Request, Response, Express, application } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import mongoose, { ConnectOptions } from "mongoose";
 import { errorHandler } from "./middlewares/error.middleware";
+import userRouter from "./routes/all.user.routes";
+import chefRouter from "./routes/chef.routes";
+import customerRouter from "./routes/customer.routes";
+import menuRouter from "./routes/menu.routes";
+import orderRouter from "./routes/order.routes";
+import riderRouter from "./routes/rider.routes";
 
 dotenv.config();
 
@@ -30,6 +36,14 @@ app.get("/", (req: Request, res: Response): void => {
         message: "server is up and running!"
     });
 });
+
+// routes
+app.use("/api/user", userRouter);
+app.use("/api/chef", chefRouter);
+app.use("/api/customer", customerRouter);
+app.use("/api/menu", menuRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/rider", riderRouter);
 
 app.use(errorHandler)
 // listen

@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
 export interface ICart {
+    _id?: mongoose.Schema.Types.ObjectId,
     item: mongoose.Schema.Types.ObjectId,
-    qty: number
+    qty?: number
 }
 
 export interface ICustomer {
@@ -31,6 +32,18 @@ const customerSchema = new mongoose.Schema<ICustomer, ICustomerModel>({
         {
             type: mongoose.Types.ObjectId,
             ref: "Orders"
+        }
+    ],
+    cart: [
+        {
+            item: {
+                type: mongoose.Types.ObjectId,
+                ref: "Menus"
+            },
+            qty: {
+                type: Number,
+                default: 1
+            }
         }
     ],
     address: {

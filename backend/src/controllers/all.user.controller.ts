@@ -94,17 +94,32 @@ const login = async (req: Request, res: Response): Promise<void> => {
                 case "Chef":
                     loginUser = await Chefs.findOne({
                         userId: user._id
+                    }).populate({
+                        path: "cart.chef",
+                        populate: {
+                            path: "menu"
+                        }
                     });
                     break;
                 case "Customer":
                     loginUser = await Customers.findOne({
                         userId: user!._id
-                    });
+                    }).populate({
+                        path: "cart.chef",
+                        populate: {
+                            path: "menu"
+                        }
+                    });;
                     break;
                 case "Rider":
                     loginUser = await Riders.findOne({
                         userId: user!._id
-                    });
+                    }).populate({
+                        path: "cart.chef",
+                        populate: {
+                            path: "menu"
+                        }
+                    });;
                     break;
             };
             let sendUser = {
@@ -182,8 +197,36 @@ const setAddress = async (req: Request, res: Response): Promise<void> => {
     };
 };
 
+const toggleVisibilityUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const user = await Users.findById(req.user!._id);
+        switch (user!.userType) {
+            case "Chef":
+                const chef = await Chefs.findOne({
+                    userId: user!._id
+                });
+                chef!.active ? chef!.active = false : chef!.active = true
+                await chef!.save();
+                break;
+            case "Rider":
+                const rider = await Riders.findOne({
+                    userId: user!._id
+                });
+                rider!.active ? rider!.active = false : rider!.active = true
+                await rider!.save();
+                break;
+        }
+    } catch (error: any) {
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};
+
 export {
     login,
     register,
-    setAddress
+    setAddress,
+    toggleVisibilityUser
 }

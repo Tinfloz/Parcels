@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 export interface IOrdersToBe {
-    _id: mongoose.Schema.Types.ObjectId,
-    user: mongoose.Schema.Types.ObjectId,
+    _id?: mongoose.Schema.Types.ObjectId,
     orderId: mongoose.Schema.Types.ObjectId,
+    elementId: mongoose.Schema.Types.ObjectId,
     qty: number
 }
 
@@ -41,9 +41,8 @@ const chefSchema = new mongoose.Schema<IChef, IChefModel>({
     },
     requestedOrders: [
         {
-            user: {
+            elementId: {
                 type: mongoose.Types.ObjectId,
-                ref: "Customers"
             },
             qty: {
                 type: Number,
@@ -56,9 +55,8 @@ const chefSchema = new mongoose.Schema<IChef, IChefModel>({
     ],
     acceptedOrders: [
         {
-            userId: {
+            elementId: {
                 type: mongoose.Types.ObjectId,
-                ref: "Customers"
             },
             qty: {
                 type: Number,

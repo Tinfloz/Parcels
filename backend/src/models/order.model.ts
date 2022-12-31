@@ -1,21 +1,24 @@
 import mongoose from "mongoose";
 
 interface IItems {
-    _id: mongoose.Schema.Types.ObjectId,
+    _id?: mongoose.Schema.Types.ObjectId,
     product: mongoose.Schema.Types.ObjectId,
     chef: mongoose.Schema.Types.ObjectId,
-    prepared: boolean,
-    qty: number
+    status: string,
+    qty: number,
+    deliveryId: mongoose.Schema.Types.ObjectId
 };
 
 export interface IOrder {
-    _id: string,
+    _id: mongoose.Schema.Types.ObjectId,
     items: Array<IItems>,
     shippingFee: number,
     salesTax: number,
+    total: number,
     customer: mongoose.Schema.Types.ObjectId,
     isPaid: boolean,
-    paidAt?: Date
+    paidAt?: Date,
+    rzpOrderId?: string
 };
 
 export interface IOrderModel extends mongoose.Model<IOrder> {
@@ -37,8 +40,13 @@ const orderSchema = new mongoose.Schema<IOrder, IOrderModel>({
                 type: Number
             },
             prepared: {
-                type: Boolean,
-                default: false
+                type: String,
+                enum: ["Requested", "Rejected", "Accepted", "Collected", "Delivered"],
+                default: "Requested"
+            },
+            deliveryId: {
+                type: mongoose.Types.ObjectId,
+                ref: "Deliveries"
             }
         }
     ],
@@ -48,12 +56,22 @@ const orderSchema = new mongoose.Schema<IOrder, IOrderModel>({
     salesTax: {
         type: Number
     },
+    total: {
+        type: Number
+    },
     isPaid: {
         type: Boolean,
         default: false
     },
+    customer: {
+        type: mongoose.Types.ObjectId,
+        ref: "Customers"
+    },
     paidAt: {
         type: Date
+    },
+    rzpOrderId: {
+        type: String
     }
 }, { timestamps: true });
 
