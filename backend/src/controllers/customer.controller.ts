@@ -9,40 +9,54 @@ import data from "../helpers/constants.json";
 import { getTaxes } from "../helpers/get.taxes";
 import { qtyZodSchema } from "../zod/customer.zod.schema";
 
-// add to cart
+// add to cart 
 const addToCart = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw "id invalid"
+        const result = qtyZodSchema.safeParse(req.body);
+        if (!result.success) {
+            res.status(400).json({
+                success: false,
+                error: result.error
+            });
+            return
         };
-        const menu = await Menus.findById(id);
         const customer = await Customers.findOne({
             userId: req.user!._id
-        });
-        for (let i of customer!.cart!) {
-            if (i.item.toString() === id) {
+        })
+        const menu = await Menus.findById(id)
+        for (let element of customer!.cart!) {
+            console.log(element.item.toString(), id)
+            if (element.item.toString() === id) {
                 throw "already in cart"
             };
         };
-        customer!.cart?.push({
-            item: menu!._id
+        const cart = {
+            item: menu!._id,
+            qty: Number(result.data.qty)
+        };
+        customer!.cart?.push(cart);
+        const updatedCustomer = await (await customer!.save())
+            .populate("cart.item", "_id item image price");
+        res.status(200).json({
+            success: true,
+            cart: customer!.cart
         });
-        await customer!.save();
+        return
     } catch (error: any) {
         if (error === "already in cart") {
             res.status(400).json({
                 success: false,
                 error: error.errors?.[0]?.message || error
-            });
+            })
         } else {
             res.status(500).json({
                 success: false,
                 error: error.errors?.[0]?.message || error
             });
-        }
-    }
-}
+        };
+    };
+};
 
 // remove from cart
 const removeFromCart = async (req: Request, res: Response): Promise<void> => {
@@ -274,4 +288,5 @@ export {
     clearCart,
     orderSingleItem,
     editCart
-}
+};
+

@@ -4,7 +4,7 @@ import { isCustomer, protect } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
-router.route("/add/cart/:id").get(protect, isCustomer, addToCart);
+router.route("/add/cart/:id").post(protect, isCustomer, addToCart);
 router.route("/remove/item/:id").get(protect, isCustomer, removeFromCart);
 router.route("/order/cart").get(protect, isCustomer, cartToOrder);
 router.route("/get/cart/items").get(protect, isCustomer, getAllCartItems);

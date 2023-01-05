@@ -41,7 +41,8 @@ const protect = async (req: Request, res: Response, next: NextFunction): Promise
 // is a chef
 const isChef = (req: Request, res: Response, next: NextFunction): void => {
     try {
-        if (req.user?.userType === "chef") {
+        if (req.user?.userType === "Chef") {
+
             next();
         } else {
             throw "not authorized";
@@ -74,9 +75,11 @@ const isRider = (req: Request, res: Response, next: NextFunction): void => {
 const isCustomer = (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.user!.userType === "Customer") {
+            console.log(req.user!.userType, "user type")
             next()
-        };
-        throw "not authorized"
+        } else {
+            throw "not authorized"
+        }
     } catch (error: any) {
         res.status(403).json({
             success: false,

@@ -40,7 +40,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
             loginUser = await Chefs.create({
                 userId: user!._id
             });
-        } else if (userType === "Customers") {
+        } else if (userType === "Customer") {
             loginUser = await Customers.create({
                 userId: user!._id
             });
@@ -94,32 +94,22 @@ const login = async (req: Request, res: Response): Promise<void> => {
                 case "Chef":
                     loginUser = await Chefs.findOne({
                         userId: user._id
-                    }).populate({
-                        path: "cart.chef",
-                        populate: {
-                            path: "menu"
-                        }
                     });
                     break;
                 case "Customer":
                     loginUser = await Customers.findOne({
                         userId: user!._id
                     }).populate({
-                        path: "cart.chef",
+                        path: "cart.item",
                         populate: {
-                            path: "menu"
+                            path: "chef"
                         }
                     });;
                     break;
                 case "Rider":
                     loginUser = await Riders.findOne({
                         userId: user!._id
-                    }).populate({
-                        path: "cart.chef",
-                        populate: {
-                            path: "menu"
-                        }
-                    });;
+                    });
                     break;
             };
             let sendUser = {
@@ -140,6 +130,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
             }
         };
     } catch (error: any) {
+        console.log(error)
         if (error === "user not found") {
             res.status(404).json({
                 succes: false,
@@ -172,8 +163,9 @@ const setAddress = async (req: Request, res: Response): Promise<void> => {
         const user = await Users.findById(req.user!._id);
         const { address, city, state, pincode } = result.data;
         const userAddress = `${address}, ${city}`;
+        console.log(userAddress)
         const [latitude, longitude] = await getLatLong(userAddress);
-        if (user?.userType === "Chefs") {
+        if (user?.userType === "Chef") {
             await Chefs.findOneAndUpdate({ userId: user!._id }, {
                 address, city, state, pincode,
                 latitude, longitude
@@ -200,22 +192,29 @@ const setAddress = async (req: Request, res: Response): Promise<void> => {
 const toggleVisibilityUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const user = await Users.findById(req.user!._id);
+        let visibility = false;
         switch (user!.userType) {
             case "Chef":
                 const chef = await Chefs.findOne({
                     userId: user!._id
                 });
-                chef!.active ? chef!.active = false : chef!.active = true
+                chef!.active ? chef!.active = false : chef!.active = true;
+                visibility = chef!.active;
                 await chef!.save();
                 break;
             case "Rider":
                 const rider = await Riders.findOne({
                     userId: user!._id
                 });
-                rider!.active ? rider!.active = false : rider!.active = true
+                rider!.active ? rider!.active = false : rider!.active = true;
+                visibility = chef!.active;
                 await rider!.save();
                 break;
-        }
+        };
+        res.status(200).json({
+            success: true,
+            visibility
+        });
     } catch (error: any) {
         res.status(500).json({
             succes: false,

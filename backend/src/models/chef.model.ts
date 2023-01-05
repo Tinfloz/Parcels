@@ -14,12 +14,12 @@ export interface IChef {
     menu?: mongoose.Schema.Types.ObjectId,
     requestedOrders?: Array<IOrdersToBe>,
     acceptedOrders?: Array<IOrdersToBe>
-    address?: string,
-    city?: string,
-    state?: string,
-    pincode?: string,
-    latitude?: number,
-    longitude?: number
+    address: string,
+    city: string,
+    state: string,
+    pincode: string,
+    latitude: number,
+    longitude: number
 };
 
 export interface IChefModel extends mongoose.Model<IChef> {

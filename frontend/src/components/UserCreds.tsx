@@ -1,6 +1,8 @@
-import React, { useState, FC, ChangeEvent } from 'react';
-import { Flex, Box, Text, VStack, Button, Input } from "@chakra-ui/react";
+import React, { useState, FC, MouseEvent, ChangeEvent, useEffect } from 'react';
+import { Flex, Box, Text, VStack, Button, Input, useToast } from "@chakra-ui/react";
 import { IUserCreds } from '../interfaces/auth.interface';
+import { useAppDispatch, useAppSelector } from "../typed.hooks/hooks"
+import { registerNewUser, login, resetUserHelpers } from "../reducers/user/user.slice";
 
 interface IUserCredProps {
     chef: boolean,
@@ -10,12 +12,51 @@ interface IUserCredProps {
 
 const UserCreds: FC<IUserCredProps> = ({ chef, customer, register }) => {
 
+    const toast = useToast();
+    const { isSuccess, isError } = useAppSelector(state => state.user);
+
     const [creds, setCreds] = useState<IUserCreds>({
         email: "",
         password: "",
         name: "",
         userType: chef ? "Chef" : (customer ? "Customer" : "Rider")
     });
+
+    const dispatch = useAppDispatch();
+
+    const handleClick = async (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        register ? (
+            await dispatch(registerNewUser(creds))
+        ) : (
+            await dispatch(login(creds))
+        )
+    };
+
+    useEffect(() => {
+        if (!isSuccess && !isError) {
+            return;
+        } else if (isSuccess) {
+            toast({
+                position: "bottom-left",
+                title: "Success",
+                description: "Successfully logged in!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } else if (isError) {
+            toast({
+                position: "bottom-left",
+                title: "Success",
+                description: "Could not log you in!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        };
+        dispatch(resetUserHelpers())
+    }, [isSuccess, isError, toast])
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
         setCreds(prevState => ({
@@ -110,7 +151,9 @@ const UserCreds: FC<IUserCredProps> = ({ chef, customer, register }) => {
                                     )
                             }
                         </>
-                        <Button>
+                        <Button
+                            onClick={handleClick}
+                        >
                             {
                                 register ? "Register" : "Login"
                             }

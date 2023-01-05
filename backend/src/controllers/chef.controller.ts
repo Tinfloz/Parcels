@@ -9,6 +9,7 @@ import { menuUpdateZodSchema, menuZodSchema } from "../zod/chef.zod.schema";
 // create menu
 const createMenu = async (req: Request, res: Response): Promise<void> => {
     try {
+        console.log("runningb create menue")
         const result = menuZodSchema.safeParse(req.body);
         if (!result.success) {
             res.status(400).json({
@@ -18,6 +19,7 @@ const createMenu = async (req: Request, res: Response): Promise<void> => {
             return;
         };
         const { item, image, left, price } = result.data;
+        console.log(result.data)
         const chef = await Chefs.findOne({
             userId: req.user!._id
         })
@@ -35,7 +37,7 @@ const createMenu = async (req: Request, res: Response): Promise<void> => {
         await chef!.save();
         res.status(200).json({
             success: true,
-            chef
+            menu
         })
     } catch (error: any) {
         res.status(500).json({
@@ -161,7 +163,7 @@ const acceptOrders = async (req: Request, res: Response): Promise<void> => {
 };
 
 // reject order
-// TODO: add refun logic
+// TODO: add refund logic
 const rejectOrders = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -199,7 +201,23 @@ const rejectOrders = async (req: Request, res: Response): Promise<void> => {
     };
 };
 
-
+// get my menu
+const getMyMenu = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const chef = await Chefs.findOne({
+            userId: req.user!._id
+        }).populate("menu", "_id image left price item");
+        res.status(200).json({
+            success: true,
+            menu: chef!.menu
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};
 
 
 export {
@@ -208,6 +226,7 @@ export {
     rejectOrders,
     updateMenu,
     deleteMenu,
+    getMyMenu
 }
 
 

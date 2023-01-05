@@ -8,3 +8,4 @@ router.route("/get/menu/:id").get(protect, isCustomer, getChefMenu);
 router.route("/get/chefs/:latitude/:longitude").get(protect, isCustomer, getChefsNearby);
 
 export default router;
+
