@@ -19,6 +19,8 @@ import { useAppSelector } from "./typed.hooks/hooks";
 import Home from "./pages/Home";
 import SetMenu from "./pages/SetMenu";
 import MenuPage from "./pages/MenuPage";
+import Checkout from "./pages/Checkout";
+import Cart from "./pages/Cart";
 
 export const App: FC = () => {
 
@@ -42,6 +44,9 @@ export const App: FC = () => {
             <Route path="/home" element={<Home />} />
             <Route path="/set/menu" element={<SetMenu />} />
             <Route path="/get/menu/:id" element={<MenuPage />} />
+            <Route path="/checkout/:id/:qty" element={<Checkout cart={false} />} />
+            <Route path="/checkout" element={<Checkout cart={true} />} />
+            <Route path="/my/cart" element={<Cart />} />
             <Route path="/" element={<Landing />} />
           </Routes>
         </Router>

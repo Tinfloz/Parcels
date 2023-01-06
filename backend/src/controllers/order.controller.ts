@@ -203,9 +203,36 @@ const markOrdersPrepared = async (req: Request, res: Response): Promise<void> =>
         });
     } catch (error: any) {
         res.status(500).json({
-            succes: false,
+            success: false,
             error: error.errors?.[0]?.message || error
         });
+    };
+};
+
+// delete order from datatbase
+const deleteOrderFromDb = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const order = await Orders.findById(id);
+        if (!order) {
+            throw "order not found"
+        };
+        await order!.remove();
+        res.status(200).json({
+            success: true
+        })
+    } catch (error: any) {
+        if (error === "order not found") {
+            res.status(404).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        } else {
+            res.status(500).json({
+                succes: false,
+                error: error.errors?.[0]?.message || error
+            });
+        };
     };
 };
 
@@ -215,4 +242,5 @@ export {
     getRequestedOrders,
     getAcceptedOrders,
     markOrdersPrepared,
+    deleteOrderFromDb
 }

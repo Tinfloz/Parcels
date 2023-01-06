@@ -29,6 +29,7 @@ export interface IMenuInit {
 export interface IMenu {
     _id: string,
     userId: {
+        _id: string,
         name: string
     },
     menu: {
@@ -55,4 +56,4 @@ export interface ISetMenuResponse {
 export interface IMenuItemResponse {
     success: boolean,
     menu: IMenu
-}
+};

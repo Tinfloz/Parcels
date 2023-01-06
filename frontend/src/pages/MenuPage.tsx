@@ -46,7 +46,7 @@ const MenuPage = () => {
                             {
                                 instanceOfIMenu(chefOrMenu) ? (
                                     <>
-                                        <MenuCard menu={chefOrMenu} />
+                                        <MenuCard cart={false} menu={chefOrMenu} />
                                     </>
                                 ) : (
                                     <>

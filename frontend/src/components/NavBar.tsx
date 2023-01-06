@@ -1,4 +1,4 @@
-import React, { FC, MutableRefObject, useRef } from 'react';
+import React, { FC, MutableRefObject, useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Flex, HStack, IconButton, Image, Input, Text,
     Drawer, DrawerHeader, DrawerCloseButton, DrawerContent, DrawerOverlay, DrawerFooter,
@@ -6,7 +6,8 @@ import {
     DrawerBody,
     VStack,
     Avatar,
-    ButtonGroup
+    ButtonGroup,
+    useToast
 } from '@chakra-ui/react';
 import logo from "../assets/parcels.jpeg"
 import { ICart, ISendUser } from '../interfaces/auth.interface';
@@ -23,11 +24,42 @@ interface INavBarProps {
 const NavBar: FC<INavBarProps> = ({ user }) => {
 
     const navigate = useNavigate();
+    const toast = useToast();
     const dispatch = useAppDispatch();
     const type = localStorage.getItem("type");
     const url = window.location.pathname;
     const btnRef = useRef() as MutableRefObject<HTMLButtonElement>;
     const { onOpen, isOpen, onClose } = useDisclosure();
+    const { isSuccess, isError } = useAppSelector(state => state.user);
+    const [clearCart, setClearCart] = useState<boolean>(false)
+    const [removeItem, setRemoveItem] = useState<boolean>(false)
+
+
+    useEffect(() => {
+        if (!isSuccess && !isError) {
+            return
+        } else if (isSuccess && clearCart || isSuccess && removeItem) {
+            toast({
+                position: "bottom-left",
+                title: "Success",
+                description: clearCart ? "Cart cleared!" : "Item removed!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } else if (isError && clearCart) {
+            toast({
+                position: "bottom-left",
+                title: "Success",
+                description: clearCart ? "Cart could not be cleared!" : "Item could not be removed!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        };
+        dispatch(resetUserHelpers());
+        clearCart ? setClearCart(false) : setRemoveItem(false);
+    }, [isSuccess, isError, dispatch, toast])
 
     return (
         <>
@@ -104,7 +136,7 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                     />
                                                 </HStack>
                                                 <HStack spacing="3vh">
-                                                    <Text>
+                                                    <Text fontSize="2vh">
                                                         {`Welcome back, ${user.name}!`}
                                                     </Text>
                                                     <Button>
@@ -116,6 +148,9 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                         onClick={onOpen}
                                                         ref={btnRef}
                                                     />
+                                                    <Text>
+                                                        {user?.loginUser?.cart?.length}
+                                                    </Text>
                                                     <Drawer
                                                         isOpen={isOpen}
                                                         placement='right'
@@ -124,6 +159,7 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                     >
                                                         <DrawerOverlay />
                                                         <DrawerContent>
+                                                            <DrawerCloseButton />
                                                             <DrawerHeader>Your cart</DrawerHeader>
                                                             <DrawerBody>
                                                                 <VStack>
@@ -155,8 +191,8 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                                                                 icon={<AiOutlineDelete />}
                                                                                                 bg="white"
                                                                                                 onClick={async () => {
+                                                                                                    setRemoveItem(true)
                                                                                                     await dispatch(removeItemUserCart(element._id));
-                                                                                                    dispatch(resetUserHelpers());
                                                                                                 }}
                                                                                             />
                                                                                         </HStack>
@@ -191,8 +227,8 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                                             <Button
                                                                                 disabled={user?.loginUser?.cart.length === 0 ? true : false}
                                                                                 onClick={async () => {
+                                                                                    setClearCart(true)
                                                                                     await dispatch(clearMyCart());
-                                                                                    dispatch(resetUserHelpers());
                                                                                 }}
                                                                             >
                                                                                 Clear Cart
@@ -200,6 +236,7 @@ const NavBar: FC<INavBarProps> = ({ user }) => {
                                                                             <Button
                                                                                 bg="purple.200"
                                                                                 disabled={user?.loginUser?.cart.length === 0 ? true : false}
+                                                                                onClick={() => navigate("/my/cart")}
                                                                             >
                                                                                 Go to cart
                                                                             </Button>

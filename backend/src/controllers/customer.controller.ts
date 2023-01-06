@@ -36,7 +36,7 @@ const addToCart = async (req: Request, res: Response): Promise<void> => {
             qty: Number(result.data.qty)
         };
         customer!.cart?.push(cart);
-        const updatedCustomer = await (await customer!.save())
+        await (await customer!.save())
             .populate("cart.item", "_id item image price");
         res.status(200).json({
             success: true,
@@ -97,6 +97,7 @@ const clearCart = async (req: Request, res: Response): Promise<void> => {
         while (customer!.cart!.length !== 0) {
             customer!.cart!.pop();
         };
+        await customer!.save();
         res.status(200).json({
             success: true
         });
@@ -115,8 +116,14 @@ const getAllCartItems = async (req: Request, res: Response): Promise<void> => {
             userId: req.user!._id
         }).populate({
             path: "cart.item",
+            select: "_id image price item chef",
             populate: {
-                path: "chef"
+                path: "chef",
+                select: "_id userId",
+                populate: {
+                    path: "userId",
+                    select: "name _id"
+                }
             }
         });
         res.status(200).json({
@@ -141,7 +148,7 @@ const orderSingleItem = async (req: Request, res: Response): Promise<void> => {
         const customer = await Customers.findOne({
             userId: req.user!._id
         });
-        const chef = await Chefs.findById(id).populate("menu");
+        const chef = await Chefs.findOne({ userId: id }).populate("menu");
         const menuArray = [];
         const item = {
             qty: Number(qty),
@@ -167,11 +174,12 @@ const orderSingleItem = async (req: Request, res: Response): Promise<void> => {
         });
         res.status(200).json({
             success: false,
-            order
+            order: await order.populate("items.product", "image item _id price")
         });
     } catch (error: any) {
+        console.log(error)
         res.status(500).json({
-            succes: false,
+            success: false,
             error: error.errors?.[0]?.message || error
         });
     };
@@ -186,7 +194,7 @@ const cartToOrder = async (req: Request, res: Response): Promise<void> => {
             path: "cart.item",
             populate: {
                 path: "chef",
-                select: "_id active latitide longitude"
+                select: "_id active latitude longitude"
             }
         });
         let shippingFee = 0;
@@ -222,6 +230,7 @@ const cartToOrder = async (req: Request, res: Response): Promise<void> => {
             totalArray.push(individualTotal);
         };
         let total = totalArray.reduce((pv, cv) => pv + cv);
+        console.log(shippingFee, salesTax)
         const order = await Orders.create({
             items: itemsArray,
             shippingFee,
@@ -229,9 +238,10 @@ const cartToOrder = async (req: Request, res: Response): Promise<void> => {
             total,
             customer: customer!._id
         });
+
         res.status(200).json({
             success: true,
-            order
+            order: await order.populate("items.product", "image item _id price")
         });
     } catch (error: any) {
         res.status(500).json({

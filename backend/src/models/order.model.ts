@@ -17,8 +17,8 @@ export interface IOrder {
     total: number,
     customer: mongoose.Schema.Types.ObjectId,
     isPaid: boolean,
-    paidAt?: Date,
-    rzpOrderId?: string
+    paidAt: Date,
+    rzpOrderId: string
 };
 
 export interface IOrderModel extends mongoose.Model<IOrder> {

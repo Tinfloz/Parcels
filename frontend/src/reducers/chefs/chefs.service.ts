@@ -45,7 +45,7 @@ const getMenuById = async (id: string, token: string): Promise<IMenuItemResponse
     console.log(API_URL + `/get/menu/${id}`)
     const response = await axios.get(API_URL + `/get/menu/${id}`, config);
     return response.data;
-}
+};
 
 const menuService = {
     getChefsNearbyUser,
