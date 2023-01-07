@@ -21,6 +21,8 @@ import SetMenu from "./pages/SetMenu";
 import MenuPage from "./pages/MenuPage";
 import Checkout from "./pages/Checkout";
 import Cart from "./pages/Cart";
+import MyOrders from "./pages/MyOrders";
+import MyMenu from "./pages/MyMenu";
 
 export const App: FC = () => {
 
@@ -47,6 +49,8 @@ export const App: FC = () => {
             <Route path="/checkout/:id/:qty" element={<Checkout cart={false} />} />
             <Route path="/checkout" element={<Checkout cart={true} />} />
             <Route path="/my/cart" element={<Cart />} />
+            <Route path="/my/orders" element={<MyOrders />} />
+            <Route path="/my/menu" element={<MyMenu />} />
             <Route path="/" element={<Landing />} />
           </Routes>
         </Router>

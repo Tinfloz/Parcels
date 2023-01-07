@@ -73,6 +73,10 @@ const updateMenu = async (req: Request, res: Response): Promise<void> => {
         menu!.left = Number(left) || menu!.left;
         menu!.price = Number(price) || menu!.price;
         await menu!.save();
+        res.status(200).json({
+            success: true,
+            item: menu!.item, image: menu!.image, left: menu!.left, price: menu!.price
+        })
     } catch (error: any) {
         res.status(500).json({
             succes: false,
@@ -206,7 +210,7 @@ const getMyMenu = async (req: Request, res: Response): Promise<void> => {
     try {
         const chef = await Chefs.findOne({
             userId: req.user!._id
-        }).populate("menu", "_id image left price item");
+        }).populate("menu", "_id image left price item chef");
         res.status(200).json({
             success: true,
             menu: chef!.menu

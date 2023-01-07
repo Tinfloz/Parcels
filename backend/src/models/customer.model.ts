@@ -9,7 +9,7 @@ export interface ICart {
 export interface ICustomer {
     _id: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
-    order: Array<mongoose.Schema.Types.ObjectId>,
+    orders: Array<mongoose.Schema.Types.ObjectId>,
     address?: string,
     city?: string,
     state?: string,
@@ -28,7 +28,7 @@ const customerSchema = new mongoose.Schema<ICustomer, ICustomerModel>({
         type: mongoose.Types.ObjectId,
         ref: "Users"
     },
-    order: [
+    orders: [
         {
             type: mongoose.Types.ObjectId,
             ref: "Orders"

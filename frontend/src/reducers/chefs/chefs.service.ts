@@ -1,5 +1,6 @@
 import axios from "axios";
-import { IChefsResponse, IMenuItemResponse, IMenuParam, ISetMenuResponse } from "../../interfaces/menu.interface";
+import { IMyMenuResponse } from "../../interfaces/errors/chef.interface";
+import { IChefsResponse, IMenuItemResponse, IMenuParam, ISetMenuResponse, IUpdateOrder, IUpdateOrderResponse } from "../../interfaces/menu.interface";
 
 const API_URL = "http://localhost:5000/api/menu";
 const API_CHEF = "http://localhost:5000/api/chef";
@@ -47,10 +48,34 @@ const getMenuById = async (id: string, token: string): Promise<IMenuItemResponse
     return response.data;
 };
 
+// get my menu
+const getMyMenu = async (token: string): Promise<IMyMenuResponse> => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+    const response = await axios.get(API_CHEF + "/get/my/menu", config);
+    return response.data;
+};
+
+// update menu
+const updateMyMenu = async (token: string, updateDetails: IUpdateOrder): Promise<IUpdateOrderResponse> => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+    const response = await axios.post(API_CHEF + "/update/menu", updateDetails, config);
+    return response.data;
+}
+
 const menuService = {
     getChefsNearbyUser,
     setChefMenu,
-    getMenuById
+    getMenuById,
+    getMyMenu,
+    updateMyMenu
 };
 
 export default menuService;

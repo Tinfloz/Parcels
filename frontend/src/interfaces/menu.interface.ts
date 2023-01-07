@@ -1,3 +1,4 @@
+import { IMyMenu } from "./errors/chef.interface"
 import { ValidationErrors } from "./errors/validation.errors"
 
 export interface IChef {
@@ -17,7 +18,7 @@ export interface IChefsResponse {
 };
 
 export interface IMenuInit {
-    chefOrMenu: Array<IChef> | IMenu | null,
+    chefOrMenu: Array<IChef> | IMenu | IMyMenu | null,
     isSuccess: boolean,
     isError: boolean,
     isLoading: boolean,
@@ -57,3 +58,14 @@ export interface IMenuItemResponse {
     success: boolean,
     menu: IMenu
 };
+
+export interface IUpdateOrder {
+    price: string,
+    image: string,
+    item: string,
+    left: string
+};
+
+export interface IUpdateOrderResponse extends IUpdateOrder {
+    success: boolean
+}

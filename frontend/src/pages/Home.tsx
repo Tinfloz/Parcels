@@ -26,6 +26,9 @@ const Home: FC = () => {
     }, [dispatch])
 
     useEffect(() => {
+        if (user?.userType === "Chef" || user?.userType === "Rider") {
+            return
+        }
         (async () => {
             let geolocationData: any = await (() => {
                 return new Promise(function (resolve, reject) {
@@ -41,6 +44,9 @@ const Home: FC = () => {
     }, [JSON.stringify(location)])
 
     useEffect(() => {
+        if (user?.userType === "Chef" || user?.userType === "Rider") {
+            return
+        }
         if (!location.latitude || !location.longitude) {
             return
         };

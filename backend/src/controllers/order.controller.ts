@@ -59,6 +59,9 @@ const updateOrderToBePaid = async (req: Request, res: Response): Promise<void> =
         if (!order) {
             throw "order not found";
         };
+        const customer = await Customers.findOne({
+            userId: req.user!._id
+        })
         const result = orderZodSchema.safeParse(req.body);
         if (!result.success) {
             res.status(400).json({
@@ -89,6 +92,8 @@ const updateOrderToBePaid = async (req: Request, res: Response): Promise<void> =
                 elementId: element!._id!,
             });
         };
+        customer!.orders.push(order._id);
+        await customer!.save();
         res.status(200).json({
             success: true,
         });
@@ -236,11 +241,46 @@ const deleteOrderFromDb = async (req: Request, res: Response): Promise<void> => 
     };
 };
 
+// get all orders of customer
+const getAllOrdersCustomer = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const customer = await Customers.findOne({
+            userId: req.user!._id
+        }).populate({
+            path: "orders",
+            select: "items total _id",
+            populate: {
+                path: "items.product",
+                select: "price _id item image chef",
+                populate: {
+                    path: "chef",
+                    select: "_id userId",
+                    populate: {
+                        path: "userId",
+                        select: "_id name"
+                    }
+                }
+            }
+        });
+        res.status(200).json({
+            success: true,
+            myOrders: customer!.orders
+        })
+        return
+    } catch (error: any) {
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};
+
 export {
     rzpPayForOrder,
     updateOrderToBePaid,
     getRequestedOrders,
     getAcceptedOrders,
     markOrdersPrepared,
-    deleteOrderFromDb
+    deleteOrderFromDb,
+    getAllOrdersCustomer
 }

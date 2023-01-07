@@ -1,8 +1,9 @@
 import axios from "axios";
-import { IOrderResponse } from "../../interfaces/order.interface";
+import { IGetCustomerOrderResponse, IOrderResponse } from "../../interfaces/order.interface";
 
 const API_URL = "http://localhost:5000/api/order";
 const API_CUSTOMER = "http://localhost:5000/api/customer"
+const API_ORDER = "http://localhost:5000/api/order"
 
 // create individual order
 const createIndividualItemOrders = async (id: string, qty: string, token: string): Promise<IOrderResponse> => {
@@ -37,10 +38,22 @@ const orderCart = async (token: string): Promise<IOrderResponse> => {
     return response.data;
 };
 
+// get my orders
+const getLoggedInUserOrders = async (token: string): Promise<IGetCustomerOrderResponse> => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+    const response = await axios.get(API_ORDER + "/get/my/orders", config);
+    return response.data;
+}
+
 const orderService = {
     createIndividualItemOrders,
     deleteOrder,
-    orderCart
+    orderCart,
+    getLoggedInUserOrders
 };
 
 export default orderService;

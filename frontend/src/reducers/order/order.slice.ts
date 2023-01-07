@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { ValidationErrors } from "../../interfaces/errors/validation.errors";
-import { IOrderInit, IOrderResponse } from "../../interfaces/order.interface";
+import { IGetCustomerOrderResponse, IOrderInit, IOrderResponse } from "../../interfaces/order.interface";
 import { RootState } from "../../store";
 import orderService from "./order.service";
 
@@ -75,6 +75,23 @@ export const orderMyCartItems = createAsyncThunk<
     };
 });
 
+export const getAllMyOrders = createAsyncThunk<
+    IGetCustomerOrderResponse,
+    void,
+    {
+        state: RootState,
+        rejectValue: ValidationErrors
+    }
+>("my/orders", async (_, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().user.user!.token;
+        return await orderService.getLoggedInUserOrders(token);
+    } catch (error: any) {
+        const message = (error.response && error.response.data && error.response.data.message)
+            || error.message || error.toString();
+        return thunkAPI.rejectWithValue(message)
+    };
+});
 
 const orderSlice = createSlice({
     name: "order",
@@ -122,6 +139,19 @@ const orderSlice = createSlice({
                 state.order = action.payload.order;
             })
             .addCase(orderMyCartItems.rejected, (state, { payload }) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = payload!
+            })
+            .addCase(getAllMyOrders.pending, state => {
+                state.isLoading = true;
+            })
+            .addCase(getAllMyOrders.fulfilled, (state, action: PayloadAction<IGetCustomerOrderResponse>) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.order = action.payload.myOrders
+            })
+            .addCase(getAllMyOrders.rejected, (state, { payload }) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = payload!
