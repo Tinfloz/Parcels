@@ -1,4 +1,3 @@
-// const API_KEY = "AIzaSyBPGZrBJq-5QKmFmeUeFmTMUj9431LwDX4"
 import React, { useEffect, useState } from 'react';
 import { useJsApiLoader, GoogleMap, Marker } from "@react-google-maps/api";
 import { Flex, Spinner } from "@chakra-ui/react";
