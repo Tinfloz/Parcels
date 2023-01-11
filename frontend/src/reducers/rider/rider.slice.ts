@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction, current } from "@reduxjs/toolkit";
 import { ValidationErrors } from "../../interfaces/errors/validation.errors";
 import { IActiveOrder, INearbyDeliveryResponse, IRiderInit } from "../../interfaces/rider.interface";
 import { RootState } from "../../store";
@@ -140,7 +140,8 @@ const riderSlice = createSlice({
             .addCase(getLoginRiderNearbyDeliveries.fulfilled, (state, action: PayloadAction<INearbyDeliveryResponse>) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                state.deliveries = action.payload.deliveriesArray
+                state.deliveries = action.payload.deliveriesArray;
+                console.log(current(state).deliveries)
             })
             .addCase(getLoginRiderNearbyDeliveries.rejected, (state, { payload }) => {
                 state.isLoading = false;

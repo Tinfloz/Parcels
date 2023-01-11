@@ -4,9 +4,11 @@ import Riders from "../models/rider.model";
 import Chefs from "../models/chef.model";
 import Customers from "../models/customer.model";
 import { Request, Response } from "express";
-import { addressZodSchema, userZodSchema } from "../zod/user.zod.schema";
+import { addressZodSchema, userResetPasswordZodSchema, userSetPasswordZodSchema, userZodSchema } from "../zod/user.zod.schema";
 import { getToken } from "../utils/get.access.token";
 import { getLatLong } from "../helpers/get.lat.lon";
+import { sendEmail } from "../utils/send.email";
+import crypto from "crypto";
 
 // register user 
 const register = async (req: Request, res: Response): Promise<void> => {
@@ -223,9 +225,114 @@ const toggleVisibilityUser = async (req: Request, res: Response): Promise<void> 
     };
 };
 
+// reset password link
+const getResetPasswordLink = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const result = userResetPasswordZodSchema.safeParse(req.body);
+        if (!result.success) {
+            res.status(400).json({
+                success: false,
+                error: result.error
+            });
+            return
+        };
+        const user = await Users.findOne({
+            email: result.data.email
+        });
+        if (!user) {
+            throw "user not found"
+        };
+        let resetToken = user.getResetToken();
+        await user!.save();
+        let resetUrl = `${req.get("origin")}/reset/password/${resetToken}`;
+        let emailToSend = `Click on this link to reset password: ${resetUrl}`;
+        let subject = "Reset password";
+        let email = result.data.email;
+        try {
+            await sendEmail({
+                subject,
+                email,
+                emailToSend
+            })
+        } catch (error) {
+            user.resetToken = undefined;
+            user.resetTokenExpires = undefined;
+            await user!.save();
+            throw new Error("email could not be sent", { cause: error });
+        }
+        res.status(200).json({
+            success: true
+        });
+        return
+    } catch (error: any) {
+        if (error === "user not found") {
+            res.status(404).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        };
+    };
+};
+
+// reset password
+const resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { resetToken } = req.params;
+        const result = userSetPasswordZodSchema.safeParse(req.body);
+        if (!result.success) {
+            res.status(200).json({
+                success: false,
+                error: result.error
+            });
+            return
+        };
+        const resetTokenHashed = crypto.createHash("sha256").update(resetToken).digest("hex");
+        const user = await Users.findOne({
+            resetToken: resetTokenHashed,
+            resetTokenExpires: {
+                $gt: Date.now()
+            }
+        });
+        if (!user) {
+            throw "token has expired"
+        };
+        const { password, confirmPassword } = result.data;
+        if (password !== confirmPassword) {
+            throw "passwords don't match"
+        };
+        user!.password = password;
+        user!.resetToken = undefined;
+        user!.resetTokenExpires = undefined;
+        await user!.save();
+        res.status(200).json({
+            success: true
+        });
+        return
+    } catch (error: any) {
+        if (error === "token has expired" || "passwords don't match") {
+            res.status(400).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        };
+    };
+};
+
 export {
     login,
     register,
     setAddress,
-    toggleVisibilityUser
+    toggleVisibilityUser,
+    getResetPasswordLink,
+    resetPassword
 }

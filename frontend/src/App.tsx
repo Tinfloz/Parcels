@@ -27,10 +27,10 @@ import ChefOrders from "./pages/ChefOrders";
 import NearbyDeliveries from "./pages/NearbyDeliveries";
 import ClaimedDelivery from "./pages/ClaimedDelivery";
 import DeliverySuccess from "./pages/DeliverySuccess";
+import GetResetLink from "./pages/GetResetLink";
+import ResetPassword from "./pages/ResetPassword";
 
 export const App: FC = () => {
-
-  console.log("app rerendered")
 
   const { user } = useAppSelector(state => state.user);
 
@@ -60,6 +60,8 @@ export const App: FC = () => {
             <Route path="/deliveries" element={<NearbyDeliveries />} />
             <Route path="/active/delivery" element={<ClaimedDelivery />} />
             <Route path="/success" element={<DeliverySuccess />} />
+            <Route path="/get/reset/link/" element={<GetResetLink />} />
+            <Route path="/reset/password/:resetToken" element={<ResetPassword />} />
             <Route path="/" element={<Landing />} />
           </Routes>
         </Router>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useJsApiLoader, GoogleMap, Marker } from "@react-google-maps/api";
-import { Flex, Spinner } from "@chakra-ui/react";
+import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
 import { useAppDispatch, useAppSelector } from '../typed.hooks/hooks';
 import { claimLoginRiderDelivery, getLoginRiderNearbyDeliveries, resetRider, resetRiderHelpers } from '../reducers/rider/rider.slice';
 import { INearbyDelivery } from '../interfaces/rider.interface';
@@ -63,7 +63,7 @@ const NearbyDeliveries = () => {
             <Flex
                 justify="center"
                 alignItems="center"
-                p={!isLoaded ? "15vh" : "0vh"}
+                p={!isLoaded || !deliveries ? "15vh" : "0vh"}
             >
                 {
                     !isLoaded || !deliveries ? (
@@ -77,42 +77,80 @@ const NearbyDeliveries = () => {
                         </>
                     ) : (
                         <>
-                            <GoogleMap
-                                center={center}
-                                zoom={15}
-                                mapContainerStyle={{ width: "100%", height: "100vh" }}
-                            >
-                                <Marker
-                                    position={center}
-                                    title="Your location"
-                                    label={{ text: "You", color: "white" }}
-                                />
-                                {
-                                    ((): Array<{ deliveryId: string, coords: { lat: number, lng: number } }> => {
-                                        let arr: Array<{ deliveryId: string, coords: { lat: number, lng: number } }> = [];
-                                        instanceOfIArrayDeliveries(deliveries) && deliveries?.forEach(el => {
-                                            let arrEl = {
-                                                deliveryId: el.deliveryId,
-                                                coords: {
-                                                    lat: el.pickUp.latitude,
-                                                    lng: el.pickUp.longitude
-                                                }
-                                            };
-                                            arr.push(arrEl)
-                                        });
-                                        return arr;
-                                    })().map(center => (
-                                        <Marker
-                                            position={center.coords}
-                                            onClick={async () => {
-                                                await dispatch(claimLoginRiderDelivery(center.deliveryId));
-                                                dispatch(resetRiderHelpers());
-                                                window.open(`https://maps.google.com?q=${center.coords.lat},${center.coords.lng}`)
-                                            }}
-                                        />
-                                    ))
-                                }
-                            </GoogleMap>
+                            {
+                                Array.isArray(deliveries) ? (
+                                    <>
+                                        {
+                                            deliveries?.length === 0 ? (
+                                                <>
+                                                    <Box
+                                                        display="grid"
+                                                        placeContent="center"
+                                                        w="20vh"
+                                                    >
+                                                        <Text>
+                                                            There are no deliveries nearby!
+                                                        </Text>
+                                                    </Box>
+                                                    <GoogleMap
+                                                        center={center}
+                                                        zoom={15}
+                                                        mapContainerStyle={{ width: "100%", height: "100vh" }}
+                                                    >
+                                                        <Marker
+                                                            position={center}
+                                                            title="Your location"
+                                                            label={{ text: "You", color: "white" }}
+                                                        />
+                                                    </GoogleMap>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <GoogleMap
+                                                        center={center}
+                                                        zoom={15}
+                                                        mapContainerStyle={{ width: "100%", height: "100vh" }}
+                                                    >
+                                                        <Marker
+                                                            position={center}
+                                                            title="Your location"
+                                                            label={{ text: "You", color: "white" }}
+                                                        />
+                                                        {
+                                                            ((): Array<{ deliveryId: string, coords: { lat: number, lng: number } }> => {
+                                                                let arr: Array<{ deliveryId: string, coords: { lat: number, lng: number } }> = [];
+                                                                instanceOfIArrayDeliveries(deliveries) && deliveries?.forEach(el => {
+                                                                    let arrEl = {
+                                                                        deliveryId: el.deliveryId,
+                                                                        coords: {
+                                                                            lat: el.pickUp.latitude,
+                                                                            lng: el.pickUp.longitude
+                                                                        }
+                                                                    };
+                                                                    arr.push(arrEl)
+                                                                });
+                                                                return arr;
+                                                            })().map(center => (
+                                                                <Marker
+                                                                    position={center.coords}
+                                                                    onClick={async () => {
+                                                                        await dispatch(claimLoginRiderDelivery(center.deliveryId));
+                                                                        dispatch(resetRiderHelpers());
+                                                                        window.open(`https://maps.google.com?q=${center.coords.lat},${center.coords.lng}`)
+                                                                    }}
+                                                                />
+                                                            ))
+                                                        }
+                                                    </GoogleMap>
+                                                </>
+                                            )
+                                        }
+                                    </>
+                                ) : (
+                                    <>
+                                    </>
+                                )
+                            }
                         </>
                     )
                 }

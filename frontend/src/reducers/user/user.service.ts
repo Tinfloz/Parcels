@@ -111,6 +111,16 @@ const clearUserCart = async (token: string): Promise<{ success: boolean }> => {
     const newUser = { ...user, "loginUser": newLoginUser };
     localStorage.setItem("user", JSON.stringify(newUser));
     return response.data;
+};
+
+const getResetPasswordLink = async (changeDetails: { email: string }): Promise<{ success: boolean }> => {
+    const response = await axios.post(API_URL + "/get/reset/password/link", changeDetails);
+    return response.data;
+};
+
+const resetUserPassword = async (resetToken: string, passwordDetails: { password: string, confirmPassword: string }): Promise<{ success: boolean }> => {
+    const response = await axios.post(API_URL + `/reset/password/${resetToken}`, passwordDetails);
+    return response.data;
 }
 
 const userService = {
@@ -119,7 +129,9 @@ const userService = {
     setAddressUser,
     addToCartUser,
     removeFromCart,
-    clearUserCart
+    clearUserCart,
+    getResetPasswordLink,
+    resetUserPassword
 };
 
 export default userService;

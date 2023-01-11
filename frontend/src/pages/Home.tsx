@@ -117,7 +117,8 @@ const Home: FC = () => {
                             ) : (
                                 <>
                                     <VStack>
-                                        <HomePageCard customer={false} text={"Find deliveries nearby"} nav={"#"} />
+                                        <HomePageCard customer={false} text={"Find deliveries nearby"} nav={"/deliveries"} />
+                                        <HomePageCard customer={false} text={"Check active delivery"} nav={"/active/delivery"} />
                                         <HomePageCard customer={false} text={"Update account details"} nav={"#"} />
                                     </VStack>
                                 </>

@@ -13,3 +13,12 @@ export const addressZodSchema = z.object({
     city: z.string(),
     pincode: z.string()
 });
+
+export const userResetPasswordZodSchema = z.object({
+    email: z.string()
+});
+
+export const userSetPasswordZodSchema = z.object({
+    password: z.string(),
+    confirmPassword: z.string()
+});
