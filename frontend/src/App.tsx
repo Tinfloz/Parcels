@@ -23,6 +23,10 @@ import Checkout from "./pages/Checkout";
 import Cart from "./pages/Cart";
 import MyOrders from "./pages/MyOrders";
 import MyMenu from "./pages/MyMenu";
+import ChefOrders from "./pages/ChefOrders";
+import NearbyDeliveries from "./pages/NearbyDeliveries";
+import ClaimedDelivery from "./pages/ClaimedDelivery";
+import DeliverySuccess from "./pages/DeliverySuccess";
 
 export const App: FC = () => {
 
@@ -51,6 +55,11 @@ export const App: FC = () => {
             <Route path="/my/cart" element={<Cart />} />
             <Route path="/my/orders" element={<MyOrders />} />
             <Route path="/my/menu" element={<MyMenu />} />
+            <Route path="/get/requested/orders" element={<ChefOrders accepted={false} />} />
+            <Route path="/get/accepted/orders" element={<ChefOrders accepted={true} />} />
+            <Route path="/deliveries" element={<NearbyDeliveries />} />
+            <Route path="/active/delivery" element={<ClaimedDelivery />} />
+            <Route path="/success" element={<DeliverySuccess />} />
             <Route path="/" element={<Landing />} />
           </Routes>
         </Router>

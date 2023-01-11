@@ -4,7 +4,7 @@ interface IItems {
     _id?: mongoose.Schema.Types.ObjectId,
     product: mongoose.Schema.Types.ObjectId,
     chef: mongoose.Schema.Types.ObjectId,
-    status: string,
+    prepared: string,
     qty: number,
     deliveryId: mongoose.Schema.Types.ObjectId
 };
@@ -41,7 +41,7 @@ const orderSchema = new mongoose.Schema<IOrder, IOrderModel>({
             },
             prepared: {
                 type: String,
-                enum: ["Requested", "Rejected", "Accepted", "Collected", "Delivered"],
+                enum: ["Requested", "Rejected", "Accepted", "Prepared", "Collected", "Delivered"],
                 default: "Requested"
             },
             deliveryId: {

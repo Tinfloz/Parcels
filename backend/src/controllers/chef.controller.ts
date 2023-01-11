@@ -104,8 +104,7 @@ const deleteMenu = async (req: Request, res: Response): Promise<void> => {
         await chef!.save();
         await menu!.remove();
         res.status(200).json({
-            success: false,
-            chef
+            success: true,
         });
     } catch (error: any) {
         if (error === "menu not found") {
@@ -145,7 +144,7 @@ const acceptOrders = async (req: Request, res: Response): Promise<void> => {
                 const order = await Orders.findById(element!.orderId);
                 for (let i of order!.items) {
                     if (i._id!.toString() === element!.elementId.toString()) {
-                        i.status = "Accepted"
+                        i.prepared = "Accepted"
                         break;
                     };
                 };
@@ -184,7 +183,7 @@ const rejectOrders = async (req: Request, res: Response): Promise<void> => {
                 const order = await Orders.findById(element!.orderId);
                 for (let i of order!.items) {
                     if (i._id!.toString() === element!.elementId.toString()) {
-                        i.status = "Rejected";
+                        i.prepared = "Rejected";
                         break;
                     };
                 };

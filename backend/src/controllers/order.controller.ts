@@ -91,6 +91,7 @@ const updateOrderToBePaid = async (req: Request, res: Response): Promise<void> =
                 orderId: order!._id,
                 elementId: element!._id!,
             });
+            await chef!.save();
         };
         customer!.orders.push(order._id);
         await customer!.save();
@@ -106,52 +107,57 @@ const updateOrderToBePaid = async (req: Request, res: Response): Promise<void> =
 };
 
 // get requested orders
-const getRequestedOrders = async (req: Request, res: Response) => {
-    try {
-        const chef = await Chefs.findOne({
-            userId: req.user!._id
-        }).populate({
-            path: "requestedOrders.orderId",
-            select: "_id customer",
-            populate: {
-                path: "customer"
-            }
-        });
-        res.status(200).json({
-            success: true,
-            orders: chef!.requestedOrders!
-        });
-    } catch (error: any) {
-        res.status(500).json({
-            succes: false,
-            error: error.errors?.[0]?.message || error
-        });
-    };
-};
+// const getRequestedOrders = async (req: Request, res: Response) => {
+//     try {
+//         const chef = await Chefs.findOne({
+//             userId: req.user!._id
+//         }).populate({
+//             path: "requestedOrders.orderId",
+//             select: "_id customer",
+//             populate: {
+//                 path: "customer",
+//                 select: "_id userId",
+//                 populate: {
+//                     path: "userId",
+//                     select: "_id name"
+//                 }
+//             }
+//         });
+//         res.status(200).json({
+//             success: true,
+//             orders: chef!.requestedOrders!
+//         });
+//     } catch (error: any) {
+//         res.status(500).json({
+//             succes: false,
+//             error: error.errors?.[0]?.message || error
+//         });
+//     };
+// };
 
 // get accepted orders
-const getAcceptedOrders = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const chef = await Chefs.findOne({
-            userId: req.user!._id
-        }).populate({
-            path: "acceptedOrders.orderId",
-            select: "_id customer",
-            populate: {
-                path: "customer"
-            }
-        });
-        res.status(200).json({
-            success: true,
-            order: chef!.acceptedOrders
-        });
-    } catch (error: any) {
-        res.status(500).json({
-            succes: false,
-            error: error.errors?.[0]?.message || error
-        });
-    };
-};
+// const getAcceptedOrders = async (req: Request, res: Response): Promise<void> => {
+//     try {
+//         const chef = await Chefs.findOne({
+//             userId: req.user!._id
+//         }).populate({
+//             path: "acceptedOrders.orderId",
+//             select: "_id customer",
+//             populate: {
+//                 path: "customer"
+//             }
+//         });
+//         res.status(200).json({
+//             success: true,
+//             order: chef!.acceptedOrders
+//         });
+//     } catch (error: any) {
+//         res.status(500).json({
+//             succes: false,
+//             error: error.errors?.[0]?.message || error
+//         });
+//     };
+// };
 
 const markOrdersPrepared = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -168,7 +174,8 @@ const markOrdersPrepared = async (req: Request, res: Response): Promise<void> =>
         };
         for (let element of order!.items) {
             if (element._id!.toString() === elementId) {
-                element!.status = "Prepared";
+                console.log(element._id!.toString() === elementId)
+                element!.prepared = "Prepared";
                 await order!.save();
                 break;
             };
@@ -283,4 +290,63 @@ export {
     markOrdersPrepared,
     deleteOrderFromDb,
     getAllOrdersCustomer
-}
+};
+
+const getRequestedOrders = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const chef = await Chefs.findOne({
+            userId: req.user!._id
+        }).populate({
+            path: "requestedOrders.orderId",
+            select: "_id customer",
+            populate: {
+                path: "customer",
+                select: "_id userId",
+                populate: {
+                    path: "userId",
+                    select: "_id name"
+                }
+            }
+        });
+        res.status(200).json({
+            success: true,
+            orders: chef!.requestedOrders
+        });
+        return
+    } catch (error: any) {
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};
+
+// get accepted orders
+const getAcceptedOrders = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const chef = await Chefs.findOne({
+            userId: req.user!._id
+        }).populate({
+            path: "acceptedOrders.orderId",
+            select: "_id customer",
+            populate: {
+                path: "customer",
+                select: "_id userId",
+                populate: {
+                    path: "userId",
+                    populate: "_id name"
+                }
+            }
+        });
+        res.status(200).json({
+            success: true,
+            orders: chef!.acceptedOrders
+        });
+        return
+    } catch (error: any) {
+        res.status(500).json({
+            succes: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};

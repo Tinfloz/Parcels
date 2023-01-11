@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { act } from "react-dom/test-utils";
-import { IMyMenu, IMyMenuResponse } from "../../interfaces/errors/chef.interface";
+import { IMyMenu, IMyMenuResponse } from "../../interfaces/chef.interface";
 import { ValidationErrors } from "../../interfaces/errors/validation.errors";
 import { IChefsResponse, IMenuInit, IMenuItemResponse, IMenuParam, ISetMenuResponse, IUpdateOrder, IUpdateOrderResponse } from "../../interfaces/menu.interface";
 import { RootState } from "../../store";
@@ -117,6 +116,27 @@ export const updateLoginChefOrder = createAsyncThunk<
     };
 });
 
+// delete my menu
+export const deleteLoginChefMenu = createAsyncThunk<
+    {
+        success: boolean
+    },
+    void,
+    {
+        state: RootState,
+        rejectValue: ValidationErrors
+    }
+>("delete/menu", async (_, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().user.user!.token;
+        return await menuService.deleteMyMenu(token);
+    } catch (error: any) {
+        const message = (error.response && error.response.data && error.response.data.message)
+            || error.message || error.toString();
+        return thunkAPI.rejectWithValue(message)
+    };
+});
+
 const menuSlice = createSlice({
     name: "menu",
     initialState,
@@ -197,6 +217,18 @@ const menuSlice = createSlice({
                 state.chefOrMenu = newChefOrMenu!;
             })
             .addCase(updateLoginChefOrder.rejected, (state, { payload }) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = payload!
+            })
+            .addCase(deleteLoginChefMenu.pending, state => {
+                state.isLoading = true;
+            })
+            .addCase(deleteLoginChefMenu.fulfilled, state => {
+                state.isLoading = false;
+                state.isSuccess = true;
+            })
+            .addCase(deleteLoginChefMenu.rejected, (state, { payload }) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = payload!

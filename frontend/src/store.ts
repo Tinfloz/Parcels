@@ -4,6 +4,8 @@ import menuReducer from "./reducers/chefs/chefs.slice";
 import orderReduceer from "./reducers/order/order.slice";
 import cartReducer from "./reducers/cart/cart.slice";
 import paymentReducer from "./reducers/payment/payment.slice";
+import chefReducer from "./reducers/chef.orders/chef.order.slice";
+import riderReducer from "./reducers/rider/rider.slice";
 
 const store = configureStore({
     reducer: {
@@ -12,7 +14,8 @@ const store = configureStore({
         order: orderReduceer,
         cart: cartReducer,
         payment: paymentReducer,
-
+        chef: chefReducer,
+        rider: riderReducer,
     }
 });
 

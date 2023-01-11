@@ -1,5 +1,6 @@
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { IMyMenuResponse } from "../../interfaces/errors/chef.interface";
+import { IMyMenuResponse } from "../../interfaces/chef.interface";
 import { IChefsResponse, IMenuItemResponse, IMenuParam, ISetMenuResponse, IUpdateOrder, IUpdateOrderResponse } from "../../interfaces/menu.interface";
 
 const API_URL = "http://localhost:5000/api/menu";
@@ -68,6 +69,17 @@ const updateMyMenu = async (token: string, updateDetails: IUpdateOrder): Promise
     };
     const response = await axios.post(API_CHEF + "/update/menu", updateDetails, config);
     return response.data;
+};
+
+// delete menu
+const deleteMyMenu = async (token: string): Promise<{ success: boolean }> => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+    const response = await axios.get(API_CHEF + "/delete/menu", config);
+    return response.data;
 }
 
 const menuService = {
@@ -75,7 +87,8 @@ const menuService = {
     setChefMenu,
     getMenuById,
     getMyMenu,
-    updateMyMenu
+    updateMyMenu,
+    deleteMyMenu
 };
 
 export default menuService;

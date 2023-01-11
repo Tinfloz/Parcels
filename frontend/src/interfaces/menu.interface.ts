@@ -1,4 +1,4 @@
-import { IMyMenu } from "./errors/chef.interface"
+import { IMyMenu } from "./chef.interface"
 import { ValidationErrors } from "./errors/validation.errors"
 
 export interface IChef {

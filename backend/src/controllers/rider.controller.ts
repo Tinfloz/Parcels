@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { getDistance } from "../helpers/get.distance";
+import { multiIdValidator } from "../helpers/multi.id.validator";
 import Orders from "../models/order.model";
 import Deliveries from "../models/pending.delivery.model";
 import Riders from "../models/rider.model";
@@ -40,9 +41,10 @@ const claimDeliveries = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw "invalid id"
+            throw "id not valid"
         };
         const delivery = await Deliveries.findById(id);
+        console.log(delivery, "delivery")
         if (!delivery) {
             throw "delivery not found"
         };
@@ -50,38 +52,42 @@ const claimDeliveries = async (req: Request, res: Response): Promise<void> => {
             userId: req.user!._id
         });
         if (!rider!.active) {
-            throw "rider not active"
+            throw "you are inactive"
         }
-        const order = await Orders.findById(delivery.orderId);
+        delivery!.claimed = true;
+        delivery!.rider = rider!._id;
+        rider!.activeDeliveries = delivery!._id;
+        const order = await Orders.findById(delivery!.orderId);
         for (let element of order!.items) {
-            if (element._id!.toString() === delivery.elementId) {
-                element!.status = "Collected"
-                element.deliveryId = delivery!._id
+            if (element._id!.toString() === delivery!.elementId.toString()) {
+                element!.deliveryId = delivery._id;
+                break;
             };
         };
-        delivery.claimed = true;
-        delivery.rider = rider!._id
-        rider!.activeDeliveries = delivery!._id
         await delivery!.save();
-        await order!.save();
         await rider!.save();
+        await order!.save();
         res.status(200).json({
-            success: true,
-            pickUp: delivery.pickUpAddress,
-            drop: delivery.dropAddress
+            success: true
         });
     } catch (error: any) {
-        if (error === "rider not active") {
+        console.log(error)
+        if (error === "delivery not found") {
+            res.status(404).json({
+                success: false,
+                error: error.errors?.[0]?.message || error
+            });
+        } else if (error === "you are inactive") {
             res.status(400).json({
-                succes: false,
+                success: false,
                 error: error.errors?.[0]?.message || error
             });
         } else {
             res.status(500).json({
-                succes: false,
+                success: false,
                 error: error.errors?.[0]?.message || error
             });
-        };
+        }
     };
 };
 
@@ -90,7 +96,7 @@ const getActiveDelivery = async (req: Request, res: Response): Promise<void> => 
     try {
         const rider = await Riders.findOne({
             userId: req.user!._id
-        }).populate("activeDeliveries");
+        }).populate("activeDeliveries", "orderId elementId dropAddress _id pickUpAddress");
         res.status(200).json({
             success: true,
             delivery: rider?.activeDeliveries
@@ -121,7 +127,7 @@ const markOrderDelivered = async (req: Request, res: Response): Promise<void> =>
         const order = await Orders.findById(delivery!.orderId);
         for (let element of order!.items) {
             if (element._id!.toString() === delivery.elementId) {
-                element.status = "Delivered";
+                element.prepared = "Delivered";
                 break;
             };
         };
@@ -145,10 +151,37 @@ const markOrderDelivered = async (req: Request, res: Response): Promise<void> =>
     };
 };
 
+// mark order picked up
+const markOrderPickedUp = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { orderId, elementId } = req.params;
+        if (multiIdValidator([orderId, elementId])) {
+            throw "id invalid"
+        };
+        const order = await Orders.findById(orderId);
+        for (let element of order!.items) {
+            if (element._id!.toString() === elementId.toString()) {
+                element.prepared = "Collected";
+                break;
+            }
+        };
+        await order!.save();
+        res.status(200).json({
+            success: true
+        })
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            error: error.errors?.[0]?.message || error
+        });
+    };
+};
 
 export {
     getDeliveries,
     claimDeliveries,
     markOrderDelivered,
     getActiveDelivery,
+    markOrderPickedUp
 };
+

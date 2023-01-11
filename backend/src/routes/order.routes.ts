@@ -8,7 +8,7 @@ router.route("/order/pay/:id").get(protect, isCustomer, rzpPayForOrder);
 router.route("/verify/payment/:id").post(protect, isCustomer, updateOrderToBePaid);
 router.route("/get/requested/orders").get(protect, isChef, getRequestedOrders);
 router.route("/get/accepted/orders").get(protect, isChef, getAcceptedOrders);
-router.route("/mark/orders/prepared").get(protect, isChef, markOrdersPrepared);
+router.route("/prepared/:orderId/:elementId").get(protect, isChef, markOrdersPrepared);
 router.route("/delete/order/:id").get(protect, isCustomer, deleteOrderFromDb);
 router.route("/get/my/orders").get(protect, isCustomer, getAllOrdersCustomer);
 
